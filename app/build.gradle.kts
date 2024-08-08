@@ -70,6 +70,9 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
+    // Compose Navigation
+    implementation(libs.navigation.compose)
+
     //dagger hilt
     implementation(libs.dagger.hilt)
     implementation(libs.dagger.hilt.navigation)

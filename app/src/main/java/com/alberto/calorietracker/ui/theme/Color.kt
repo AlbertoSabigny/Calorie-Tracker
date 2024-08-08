@@ -20,3 +20,7 @@ val Accent = Color(0xFFFFFFFF)
 val Gold = Color(0xFFFFE78F)
 val BlackAlpha = Color(0x98000000)
 val Red = Color(0xFFFF0000)
+
+val OrangeLight = Color(0xFFFFAB40)
+val OrangeMedium = Color(0xFFFF9100)
+val OrangeDark = Color(0xFFFF6D00)
