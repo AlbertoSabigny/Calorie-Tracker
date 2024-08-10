@@ -11,5 +11,4 @@ sealed class FitnessOnboardingEvent {
     object CalculateIMCAndIdealWeight : FitnessOnboardingEvent()
     object CalculateDailyCalories : FitnessOnboardingEvent()
     object SaveUserData : FitnessOnboardingEvent()
-    object CompleteOnboarding : FitnessOnboardingEvent()
 }

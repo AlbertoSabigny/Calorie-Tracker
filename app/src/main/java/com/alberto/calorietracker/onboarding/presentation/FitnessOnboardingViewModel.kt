@@ -8,7 +8,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alberto.calorietracker.core.domain.model.UserProfile
 import com.alberto.calorietracker.onboarding.domain.model.ActivityLevel
+import com.alberto.calorietracker.onboarding.domain.usecase.CompleteOnboardingUseCase
 import com.alberto.calorietracker.onboarding.domain.usecase.GetActivityLevelsUseCase
+import com.alberto.calorietracker.onboarding.domain.usecase.HasSeenOnBoardingUseCase
 import com.alberto.calorietracker.onboarding.domain.usecase.SaveUserProfileUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,11 +23,15 @@ import javax.inject.Inject
 @HiltViewModel
 class FitnessOnboardingViewModel @Inject constructor(
     private val getActivityLevelsUseCase: GetActivityLevelsUseCase,
-    private val saveUserProfileUseCase: SaveUserProfileUseCase
+    private val saveUserProfileUseCase: SaveUserProfileUseCase,
+    private val hasSeenOnBoardingUseCase: HasSeenOnBoardingUseCase,
+    private val completeOnboardingUseCase: CompleteOnboardingUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(FitnessOnboardingState())
     val state: StateFlow<FitnessOnboardingState> = _state
+    var hasSeenOnboarding by mutableStateOf(hasSeenOnBoardingUseCase())
+        private set
 
     init {
         _state.update { it.copy(activityLevels = getActivityLevelsUseCase()) }
@@ -43,7 +49,6 @@ class FitnessOnboardingViewModel @Inject constructor(
             is FitnessOnboardingEvent.CalculateIMCAndIdealWeight -> calcularIMCYPesoIdeal()
             is FitnessOnboardingEvent.CalculateDailyCalories -> calcularCaloriasDiarias()
             is FitnessOnboardingEvent.SaveUserData -> saveUserData()
-            is FitnessOnboardingEvent.CompleteOnboarding -> completeOnboarding()
         }
     }
 
@@ -163,7 +168,8 @@ class FitnessOnboardingViewModel @Inject constructor(
         }
     }
 
-    private fun completeOnboarding() {
-        _state.update { it.copy(hasCompletedOnboarding = true) }
+     fun completeOnboarding() {
+        completeOnboardingUseCase()
+        hasSeenOnboarding = true
     }
 }

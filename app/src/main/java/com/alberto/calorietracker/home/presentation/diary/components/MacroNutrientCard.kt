@@ -1,4 +1,4 @@
-package com.alberto.calorietracker.home.diary.components
+package com.alberto.calorietracker.home.presentation.diary.components
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -25,6 +26,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.alberto.calorietracker.R
+import com.alberto.calorietracker.ui.theme.DarkerGray
+import com.alberto.calorietracker.ui.theme.VeryDarkGray
 
 @Composable
 fun  MacroNutrientCard (
@@ -47,7 +50,8 @@ fun  MacroNutrientCard (
 
     Card (modifier= Modifier
         .fillMaxWidth()
-        .padding(16.dp)){
+        .padding(16.dp),
+        colors = CardDefaults.cardColors(containerColor = VeryDarkGray)){
 
         Column (
             modifier = Modifier.padding(16.dp)
@@ -77,7 +81,7 @@ fun  MacroNutrientCard (
                     .fillMaxWidth()
                     .height(8.dp)
                     .clip(RoundedCornerShape(4.dp)),
-                color = Color(0xFFF57C00),  // Color de la barra de progreso (verde en este ejemplo)
+                color = Color(0xFFF57C00),
                 trackColor = Color(0xFFFFE0B2)
             )
             Spacer(modifier = Modifier.height(8.dp))

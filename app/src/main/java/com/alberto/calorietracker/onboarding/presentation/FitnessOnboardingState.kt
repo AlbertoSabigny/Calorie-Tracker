@@ -14,6 +14,5 @@ data class FitnessOnboardingState(
     val pesoIdealMinimo: Double = 0.0,
     val pesoIdealMaximo: Double = 0.0,
     val caloriasDiariasRecomendadas: Double = 0.0,
-    val hasCompletedOnboarding: Boolean = false,
     val activityLevels: List<ActivityLevel> = emptyList()
 )

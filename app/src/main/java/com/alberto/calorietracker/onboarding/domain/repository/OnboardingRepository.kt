@@ -4,4 +4,6 @@ import com.alberto.calorietracker.core.domain.model.UserProfile
 
 interface OnboardingRepository {
     suspend fun saveUserProfile(userProfile: UserProfile)
+    fun hasSeenOnboarding(): Boolean
+    fun completeOnboarding()
 }

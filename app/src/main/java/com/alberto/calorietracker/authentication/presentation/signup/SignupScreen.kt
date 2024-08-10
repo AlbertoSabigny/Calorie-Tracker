@@ -46,7 +46,7 @@ fun SignupScreen(
     }
     if (state.isLoading) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            //CircularProgressIndicator()
+            CircularProgressIndicator()
         }
     }
 }

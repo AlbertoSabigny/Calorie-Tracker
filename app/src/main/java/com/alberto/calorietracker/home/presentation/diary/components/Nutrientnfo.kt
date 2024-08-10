@@ -1,4 +1,4 @@
-package com.alberto.calorietracker.home.diary.components
+package com.alberto.calorietracker.home.presentation.diary.components
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image

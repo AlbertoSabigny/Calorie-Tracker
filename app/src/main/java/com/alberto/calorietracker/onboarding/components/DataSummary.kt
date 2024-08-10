@@ -95,7 +95,6 @@ fun DataSummary(state: FitnessOnboardingState,
         Button(
             onClick = {
                 onEvent(FitnessOnboardingEvent.SaveUserData)
-                onEvent(FitnessOnboardingEvent.CompleteOnboarding)
                 onFinish()
             },
             modifier = Modifier

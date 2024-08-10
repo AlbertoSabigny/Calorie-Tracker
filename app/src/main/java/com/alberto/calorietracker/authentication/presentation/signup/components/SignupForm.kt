@@ -47,7 +47,9 @@ fun SignupForm(
             onValueChange = { onEvent(SignupEvent.EmailChange(it)) },
             placeholder = "Email",
             contentDescription = "Enter email",
-            modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp).padding(horizontal = 20.dp),
+            modifier = Modifier.fillMaxWidth().
+            padding(bottom = 6.dp)
+                .padding(horizontal = 20.dp),
             leadingIcon = Icons.Outlined.Email,
             keyboardOptions = KeyboardOptions(
                 autoCorrect = false,
@@ -59,7 +61,7 @@ fun SignupForm(
             }),
             errorMessage = state.emailError,
             isEnabled = !state.isLoading,
-            backgroundColor = Color.White
+            backgroundColor = Color.Black
         )
         HabitPasswordTextfield(
             value = state.password,
@@ -77,7 +79,7 @@ fun SignupForm(
                 focusManager.clearFocus()
                 onEvent(SignupEvent.SignUp)
             }),
-            backgroundColor = Color.White
+            backgroundColor = Color.Black
         )
         Spacer(modifier = Modifier.height(12.dp))
         HabitButton(
@@ -95,7 +97,7 @@ fun SignupForm(
                         append("Sign in")
                     }
                 },
-                color = MaterialTheme.colorScheme.tertiary
+                color = Color.White
             )
         }
     }

@@ -2,6 +2,7 @@ package com.alberto.calorietracker.onboarding.presentation
 
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -18,6 +19,11 @@ fun OnboardingScreen (
     viewModel: FitnessOnboardingViewModel = hiltViewModel(),
     onFinish: () -> Unit
 ){
+    LaunchedEffect(key1 = viewModel.hasSeenOnboarding) {
+        if (viewModel.hasSeenOnboarding) {
+            onFinish()
+        }
+    }
     val state by viewModel.state.collectAsState()
 
     val pages = listOf(
@@ -54,7 +60,7 @@ fun OnboardingScreen (
         )
     )
 
-    FitnessOnboardingPager(pages = pages, onFinish = {viewModel.onEvent(FitnessOnboardingEvent.CompleteOnboarding)}, onEvent = viewModel::onEvent)
+    FitnessOnboardingPager(pages = pages, onFinish = {viewModel.completeOnboarding()}, onEvent = viewModel::onEvent)
 }
 
 

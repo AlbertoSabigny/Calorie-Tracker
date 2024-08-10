@@ -26,4 +26,12 @@ class OnboardingRepositoryImpl @Inject constructor(
         }.apply()
         Log.d("UserProfile", "Perfil guardado: $userProfile")
     }
+
+    override fun hasSeenOnboarding(): Boolean {
+        return sharedPreferences.getBoolean("has_seen_onboarding", false)
+    }
+
+    override fun completeOnboarding() {
+        sharedPreferences.edit().putBoolean("has_seen_onboarding", true).apply()
+    }
 }

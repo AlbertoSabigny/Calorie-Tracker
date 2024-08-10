@@ -11,7 +11,8 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Email
-import androidx.compose.material3.CircularProgressIndicator
+//import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -36,6 +37,19 @@ import com.alberto.calorietracker.authentication.presentation.login.LoginState
 import com.alberto.calorietracker.core.presentation.HabitButton
 import com.alberto.calorietracker.core.presentation.HabitPasswordTextfield
 import com.alberto.calorietracker.core.presentation.HabitTextfield
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.HorizontalDivider
+//import androidx.compose.material3.MaterialTheme
+//import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+//import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+//import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
 
 @Composable
 fun LoginForm(
@@ -57,8 +71,10 @@ fun LoginForm(
                 style = MaterialTheme.typography.bodyLarge,
                 color = Color.White
             )
-            Divider(
-                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+            HorizontalDivider(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
                 color = Color.Gray.copy(alpha = 0.5f)
             )
             HabitTextfield(
@@ -66,7 +82,10 @@ fun LoginForm(
                 onValueChange = { onEvent(LoginEvent.EmailChange(it)) },
                 placeholder = "Email",
                 contentDescription = "Enter email",
-                modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp).padding(horizontal = 20.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 6.dp)
+                    .padding(horizontal = 20.dp),
                 leadingIcon = Icons.Outlined.Email,
                 keyboardOptions = KeyboardOptions(
                     autoCorrect = false,
@@ -85,7 +104,10 @@ fun LoginForm(
                 value = state.password,
                 onValueChange = { onEvent(LoginEvent.PasswordChange(it)) },
                 contentDescription = "Enter password",
-                modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp).padding(horizontal = 20.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 6.dp)
+                    .padding(horizontal = 20.dp),
                 errorMessage = state.passwordError,
                 isEnabled = !state.isLoading,
                 keyboardOptions = KeyboardOptions(
@@ -101,7 +123,9 @@ fun LoginForm(
             )
             HabitButton(
                 text = "Login",
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp),
                 isEnabled = !state.isLoading
             ) {
                 onEvent(LoginEvent.Login)
@@ -127,7 +151,9 @@ fun LoginForm(
             }
         }
         if (state.isLoading) {
-          //  CircularProgressIndicator(color = Color.White)
+           // CustomCircularProgressIndicator()
+            CircularProgressIndicator()
+
         }
     }
 }
@@ -136,4 +162,31 @@ fun LoginForm(
 @Composable
 fun LoginFormPreview() {
     LoginForm(LoginState(), {}, {})
+}
+
+@Composable
+fun CustomCircularProgressIndicator(
+    modifier: Modifier = Modifier,
+    color: Color = MaterialTheme.colorScheme.primary
+) {
+    val infiniteTransition = rememberInfiniteTransition(label = "")
+    val rotation by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = ""
+    )
+
+    Canvas(modifier = modifier.size(48.dp)) {
+        rotate(rotation) {
+            drawCircle(
+                color = color,
+                radius = size.minDimension / 10,
+                center = Offset(size.width / 2, size.height / 5)
+            )
+        }
+    }
 }
