@@ -32,11 +32,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import java.time.LocalDate
 
 @Composable
 fun MainScreen(
     logout: () -> Unit,
-    onNavigateToSearch: () -> Unit,
+    onNavigateToSearch: (LocalDate) -> Unit
     //onNavigateToDetail: (String) -> Unit
 ) {
     val navController = rememberNavController()

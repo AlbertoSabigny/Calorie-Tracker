@@ -6,6 +6,7 @@ sealed class NavigationRoute(val route:String){
     object Diary : NavigationRoute("diary")//eliminar proximamente
     object Signup : NavigationRoute("signup")
     object Main : NavigationRoute("main")
-    object Search : NavigationRoute("search")
-    object Detail : NavigationRoute("detail")
+    object Search : NavigationRoute("search/{selectedDate}")
+    object FoodDetail : NavigationRoute("food_detail/{foodId}/{selectedDate}")
+
 }

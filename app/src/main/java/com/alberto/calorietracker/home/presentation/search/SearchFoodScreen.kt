@@ -1,9 +1,11 @@
 package com.alberto.calorietracker.home.presentation.search
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -11,6 +13,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -19,12 +22,16 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.alberto.calorietracker.home.domain.model.Food
 import com.alberto.calorietracker.ui.theme.OrangeMedium
 import com.alberto.calorietracker.ui.theme.VeryDarkGray
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 
 @Composable
 fun SearchFoodScreen(
+    date: LocalDate,
     viewModel: SearchFoodViewModel = hiltViewModel(),
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onFoodSelected: (String) ->Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -49,6 +56,10 @@ fun SearchFoodScreen(
                 .padding(padding)
                 .padding(16.dp)
         ) {
+            DateDisplay(
+                date = date,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
             SearchBar(
                 query = uiState.searchQuery,
                 onQueryChange = { newQuery ->
@@ -58,16 +69,20 @@ fun SearchFoodScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            when {
-                uiState.isLoading -> LoadingIndicator()
-                uiState.error != null -> ErrorMessage(uiState.error!!)
-                uiState.alimentos.isEmpty() -> EmptySearchResult()
-                else -> FoodList(uiState.alimentos)
-            }
+            SearchContent(uiState = uiState, onFoodSelected = onFoodSelected)
         }
     }
 }
 
+@Composable
+fun SearchContent(uiState: SearchFoodUiState, onFoodSelected: (String) -> Unit) {
+    when {
+        uiState.isLoading -> LoadingIndicator()
+        uiState.error != null -> ErrorMessage(uiState.error)
+        uiState.alimentos.isEmpty() -> EmptySearchResult()
+        else -> FoodList(foods = uiState.alimentos, onFoodSelected = onFoodSelected)
+    }
+}
 
 @Composable
 fun SearchBar(query: String, onQueryChange: (String) -> Unit) {
@@ -131,22 +146,24 @@ fun EmptySearchResult() {
 }
 
 @Composable
-fun FoodList(foods: List<Food>) {
+fun FoodList(foods: List<Food>, onFoodSelected: (String) -> Unit) {
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         items(foods) { food ->
-            FoodListItem(food)
+            FoodListItem(food = food,
+                onFoodSelected = onFoodSelected  )
         }
     }
 }
 
 @Composable
-fun FoodListItem(food: Food) {
+fun FoodListItem(food: Food, onFoodSelected: (String) -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
+            .padding(vertical = 4.dp)
+            .clickable { onFoodSelected(food.id) },
         elevation = 4.dp,
         backgroundColor = Color.Gray
     ) {
@@ -175,5 +192,22 @@ fun FoodListItem(food: Food) {
                 color = Color.White
             )
         }
+    }
+}
+
+@Composable
+fun DateDisplay(date: LocalDate, modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(4.dp))
+            .background(Color.DarkGray)
+            .padding(horizontal = 8.dp, vertical = 4.dp)
+    ) {
+        Text(
+            text = date.format(DateTimeFormatter.ofPattern("dd MMM yyyy")),
+            color = Color.White,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium
+        )
     }
 }

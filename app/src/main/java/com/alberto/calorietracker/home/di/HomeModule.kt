@@ -1,7 +1,7 @@
 package com.alberto.calorietracker.home.di
 
 import com.alberto.calorietracker.home.data.repository.FoodRepositoryimpl
-import com.alberto.calorietracker.home.data.source.RemoteFoodDataSource
+import com.alberto.calorietracker.home.data.remote.source.RemoteFoodDataSource
 import com.alberto.calorietracker.home.domain.repository.FoodRepository
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.Module

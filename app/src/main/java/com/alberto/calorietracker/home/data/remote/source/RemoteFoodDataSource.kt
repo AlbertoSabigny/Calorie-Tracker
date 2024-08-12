@@ -1,4 +1,4 @@
-package com.alberto.calorietracker.home.data.source
+package com.alberto.calorietracker.home.data.remote.source
 
 import com.alberto.calorietracker.home.data.remote.model.FoodResponse
 import com.alberto.calorietracker.home.data.remote.model.NutrientsResponse
@@ -29,6 +29,21 @@ class RemoteFoodDataSource @Inject constructor(
             emptyList()
         }
     }
+
+    suspend fun obtenerAlimentoPorId(id: String): FoodResponse? {
+        return try {
+            val document = firestore.collection("Foods").document(id).get().await()
+            document.toObject(FoodResponse::class.java)?.let { food ->
+                food.copy(
+                    id = document.id,
+                    nutrientes = cargarNutrientes(document.reference.collection("nutrientes"))
+                )
+            }
+        } catch (e: Exception) {
+            null
+        }
+    }
+
 
     private suspend fun cargarNutrientes(collection: com.google.firebase.firestore.CollectionReference): List<NutrientsResponse> {
         return try {
