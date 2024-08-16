@@ -10,7 +10,11 @@ data class FoodDetailUiState(
     val error: String? = null,
     val customAmount: String = "100",
     val selectedMealType: MealType = MealType.BREAKFAST,
-    val saveSuccess: Boolean = false
+    val saveSuccess: Boolean = false,
+    val calories: Double = 0.0,
+    val proteins: Double = 0.0,
+    val carbohydrates: Double = 0.0,
+    val fats: Double = 0.0
 )
 enum class MealType {
     BREAKFAST, LUNCH, DINNER

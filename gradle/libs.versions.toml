@@ -9,9 +9,9 @@ lifecycleRuntimeKtx = "2.8.3"
 activityCompose = "1.9.0"
 composeBom = "2024.02.00"
 
-coilCompose = "2.2.2"
+
 hilt = "2.49"
-retrofit = "2.9.0"
+
 accompanistVersion = "0.28.0"
 
 hiltNavigationCompose = "1.2.0"
@@ -21,14 +21,14 @@ firebaseBom = "32.2.3"
 
 navigationCompose = "2.5.3"
 
-roomVersion = "2.5.0"
+roomVersion = "2.6.0"
 
 [libraries]
 accompanist-pager-indicators = { module = "com.google.accompanist:accompanist-pager-indicators", version.ref = "accompanistVersion" }
 accompanist-pager = { module = "com.google.accompanist:accompanist-pager", version.ref = "accompanistVersion" }
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanistVersion" }
 
-coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
+
 
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomVersion" }
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "roomVersion" }
@@ -39,8 +39,6 @@ dagger-hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", ve
 dagger-hilt-navigation = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
 
 firebase-firestore = { module = "com.google.firebase:firebase-firestore" }
-retrofit2-retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
-converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "retrofit" }
 
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
 firebase-auth-ktx = { group = "com.google.firebase", name = "firebase-auth-ktx"}

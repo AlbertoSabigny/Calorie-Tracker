@@ -81,7 +81,7 @@ dependencies {
     kapt(libs.dagger.hilt.compiler)
 
     //coil
-    implementation(libs.coil.compose)
+
 
     // Room
     implementation(libs.androidx.room.ktx)
@@ -89,8 +89,7 @@ dependencies {
     implementation(libs.androidx.room.runtime)
 
     //retrofit
-    implementation(libs.retrofit2.retrofit)
-    implementation(libs.converter.gson)
+
     // Pager
     implementation(libs.accompanist.pager)
     implementation(libs.accompanist.pager.indicators)

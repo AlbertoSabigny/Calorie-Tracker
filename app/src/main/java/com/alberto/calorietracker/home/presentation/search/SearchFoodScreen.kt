@@ -31,7 +31,7 @@ fun SearchFoodScreen(
     date: LocalDate,
     viewModel: SearchFoodViewModel = hiltViewModel(),
     onBack: () -> Unit,
-    onFoodSelected: (String) ->Unit
+    onFoodSelected: (String, LocalDate) ->Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -56,10 +56,7 @@ fun SearchFoodScreen(
                 .padding(padding)
                 .padding(16.dp)
         ) {
-            DateDisplay(
-                date = date,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
+
             SearchBar(
                 query = uiState.searchQuery,
                 onQueryChange = { newQuery ->
@@ -69,7 +66,7 @@ fun SearchFoodScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            SearchContent(uiState = uiState, onFoodSelected = onFoodSelected)
+            SearchContent(uiState = uiState, onFoodSelected = { foodId -> onFoodSelected(foodId, date) })
         }
     }
 }
@@ -165,7 +162,7 @@ fun FoodListItem(food: Food, onFoodSelected: (String) -> Unit) {
             .padding(vertical = 4.dp)
             .clickable { onFoodSelected(food.id) },
         elevation = 4.dp,
-        backgroundColor = Color.Gray
+        backgroundColor = VeryDarkGray
     ) {
         Row(
             modifier = Modifier
@@ -195,19 +192,3 @@ fun FoodListItem(food: Food, onFoodSelected: (String) -> Unit) {
     }
 }
 
-@Composable
-fun DateDisplay(date: LocalDate, modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier
-            .clip(RoundedCornerShape(4.dp))
-            .background(Color.DarkGray)
-            .padding(horizontal = 8.dp, vertical = 4.dp)
-    ) {
-        Text(
-            text = date.format(DateTimeFormatter.ofPattern("dd MMM yyyy")),
-            color = Color.White,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Medium
-        )
-    }
-}

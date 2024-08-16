@@ -5,7 +5,9 @@ import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.alberto.calorietracker.home.data.local.entity.FoodEntity
 import com.alberto.calorietracker.home.domain.usecase.GetFoodByIdUseCase
+import com.alberto.calorietracker.home.domain.usecase.SaveFoodConsumptionUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -19,7 +21,7 @@ import javax.inject.Inject
 @HiltViewModel
 class FoodDetailViewModel @Inject constructor(
     private val getFoodByIdUseCase: GetFoodByIdUseCase,
-   // private val saveFoodConsumptionUseCase: SaveFoodConsumptionUseCase, // Nueva dependencia
+    private val saveFoodConsumptionUseCase: SaveFoodConsumptionUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -34,7 +36,7 @@ class FoodDetailViewModel @Inject constructor(
                 when (event) {
                     is FoodDetailEvent.LoadFood -> loadFood(event.id)
                     is FoodDetailEvent.UpdateCustomAmount -> updateCustomAmount(event.amount)
-                    is FoodDetailEvent.SaveFoodConsumption -> saveFoodConsumption()
+                    is FoodDetailEvent.SaveFoodConsumption -> saveFoodConsumption(event.date)
                     is FoodDetailEvent.UpdateMealType -> updateMealType(event.mealType)
                 }
             }
@@ -67,9 +69,10 @@ class FoodDetailViewModel @Inject constructor(
                                 food = food,
                                 isLoading = false,
                                 error = null,
-                                customAmount = food.cantidadBase.toString() // Inicializar con la cantidad base
+                                customAmount = food.cantidadBase.toString()
                             )
                         }
+                        updateNutritionInfo(food.cantidadBase)
                         Log.d(TAG, "Alimento cargado: ${food.nombre}")
                     },
                     onFailure = { error ->
@@ -96,20 +99,57 @@ class FoodDetailViewModel @Inject constructor(
 
     private fun updateCustomAmount(amount: String) {
         _uiState.update { it.copy(customAmount = amount) }
+        updateNutritionInfo(amount.toIntOrNull() ?: return)
     }
 
-    private fun saveFoodConsumption() {
-        val currentState = _uiState.value
-        Log.d(TAG, "Se guardará alimento: ${currentState.food?.nombre}, " +
-                "Cantidad: ${currentState.customAmount}, " +
-                "Tipo de comida: ${currentState.selectedMealType}")
-        // Simulamos un guardado exitoso
-        _uiState.update { it.copy(saveSuccess = true) }
-        // Reseteamos el estado de éxito después de un breve delay
-        viewModelScope.launch {
-            delay(2000) // 2 segundos
-            _uiState.update { it.copy(saveSuccess = false) }
+    private fun updateNutritionInfo(customAmount: Int) {
+        val food = _uiState.value.food ?: return
+        val baseAmount = food.cantidadBase
+
+        _uiState.update { currentState ->
+            currentState.copy(
+                calories = calculateNutrient(food.nutrientes.first().energia, baseAmount, customAmount),
+                proteins = calculateNutrient(food.nutrientes.first().proteinas, baseAmount, customAmount),
+                carbohydrates = calculateNutrient(food.nutrientes.first().carbohidratos, baseAmount, customAmount),
+                fats = calculateNutrient(food.nutrientes.first().lipidos, baseAmount, customAmount)
+            )
         }
     }
-}
 
+    private fun saveFoodConsumption(date: Long) {
+        val currentState = _uiState.value
+        val food = currentState.food ?: return
+        val customAmount = currentState.customAmount.toIntOrNull() ?: return
+
+        viewModelScope.launch {
+            try {
+                val foodEntity = FoodEntity(
+                    nombre = food.nombre,
+                    date = date,
+                    mealType = currentState.selectedMealType,
+                    amount = customAmount,
+                    calories = currentState.calories,
+                    proteins = currentState.proteins,
+                    carbohydrates = currentState.carbohydrates,
+                    fats = currentState.fats
+                )
+
+                saveFoodConsumptionUseCase(foodEntity)
+                _uiState.update { it.copy(saveSuccess = true) }
+
+                // Reseteamos el estado de éxito después de un breve delay
+                delay(2000) // 2 segundos
+                _uiState.update { it.copy(saveSuccess = false) }
+
+                Log.d(TAG, "Alimento guardado con éxito: ${food.nombre}")
+            } catch (e: Exception) {
+                _uiState.update { it.copy(error = e.message) }
+                Log.e(TAG, "Error al guardar el consumo de alimento: ${e.message}", e)
+            }
+        }
+    }
+
+    private fun calculateNutrient(baseValue: Double, baseAmount: Int, customAmount: Int): Double {
+        return baseValue * customAmount / baseAmount
+    }
+}

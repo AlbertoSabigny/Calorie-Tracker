@@ -2,12 +2,9 @@ package com.alberto.calorietracker.core.presentation.mainscreen
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
-import androidx.compose.material.Colors
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Person
@@ -27,7 +24,6 @@ import com.alberto.calorietracker.home.presentation.diary.DiaryScreen
 import com.alberto.calorietracker.profile.presentation.ProfileScreen
 import com.alberto.calorietracker.recipes.presentation.RecipeScreen
 import com.alberto.calorietracker.ui.theme.OrangeMedium
-import kotlinx.coroutines.selects.select
 import androidx.compose.foundation.layout.size
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp

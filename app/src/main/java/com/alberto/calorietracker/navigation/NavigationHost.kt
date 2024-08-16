@@ -50,7 +50,11 @@ fun NavigationHost (
         }
         composable(NavigationRoute.Main.route) {
             MainScreen(
-                logout = logout,
+                logout = { logout()
+                    navHostController.navigate(NavigationRoute.Login.route) {
+                        popUpTo(NavigationRoute.Main.route) { inclusive = true }
+                    }
+                },
                 onNavigateToSearch = { date ->
                     // Convertimos la fecha a Long para pasarla como argumento de navegación
                     val dateLong = date.toEpochDay()
@@ -68,20 +72,34 @@ fun NavigationHost (
             SearchFoodScreen(
                 date = date,
                 onBack = { navHostController.popBackStack() },
-                onFoodSelected = { foodId ->
-                    navHostController.navigate("${NavigationRoute.FoodDetail.route}/$foodId")
+                onFoodSelected = { foodId, selectedDate ->
+                    navHostController.navigate(
+                        "${NavigationRoute.FoodDetail.route}".replace("{foodId}", foodId)
+                            .replace("{date}", selectedDate.toEpochDay().toString())
+                    )
                 }
             )
         }
 
         composable(
-            route = "${NavigationRoute.FoodDetail.route}/{foodId}",
-            arguments = listOf(navArgument("foodId") { type = NavType.StringType })
+            route = NavigationRoute.FoodDetail.route,
+            arguments = listOf(
+                navArgument("foodId") { type = NavType.StringType },
+                navArgument("date") { type = NavType.LongType }
+            )
         ) { backStackEntry ->
             val foodId = backStackEntry.arguments?.getString("foodId") ?: return@composable
+            val dateLong = backStackEntry.arguments?.getLong("date") ?: 0L
+
             DetailScreen(
                 foodId = foodId,
-                onBack = { navHostController.popBackStack() }
+                date = dateLong,
+                onBack = { navHostController.popBackStack() },
+                onNavigateToDiary = {
+                    navHostController.navigate(NavigationRoute.Main.route) {
+                        popUpTo(NavigationRoute.Main.route) { inclusive = true }
+                    }
+                }
             )
         }
 

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -20,6 +21,8 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDefaults
@@ -45,8 +48,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.alberto.calorietracker.home.domain.model.FoodConsumed
 import com.alberto.calorietracker.home.presentation.diary.components.MacroNutrientCard
+import com.alberto.calorietracker.ui.theme.VeryDarkGray
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -62,10 +68,10 @@ fun DiaryScreen(
     var showDatePicker by remember { mutableStateOf(false) }
 
     val datePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = state.selectedDate.
-        atStartOfDay(ZoneOffset.UTC).
-        toInstant().
-        toEpochMilli()
+        initialSelectedDateMillis = state.selectedDate
+            .atStartOfDay(ZoneOffset.UTC)
+            .toInstant()
+            .toEpochMilli()
     )
 
     Scaffold(
@@ -131,16 +137,34 @@ fun DiaryScreen(
         ) {
             item {
                 MacroNutrientCard(
-                    carbs = Pair(35, 70),
-                    proteins = Pair(50, 100),
-                    fats = Pair(20, 50),
-                    calories = Pair(1350, 2300),
+                    carbs = Pair(state.carbs, 70),
+                    proteins = Pair(state.proteins, 100),
+                    fats = Pair(state.fats, 50),
+                    calories = Pair(state.calories, 2300),
                     modifier = Modifier.fillMaxWidth()
                 )
             }
-            item { MealSection(title = "Desayuno", onNavigateToSearch = { onNavigateToSearch(state.selectedDate) }) }
-            item { MealSection(title = "Comida", onNavigateToSearch = { onNavigateToSearch(state.selectedDate) }) }
-            item { MealSection(title = "Cena", onNavigateToSearch = { onNavigateToSearch(state.selectedDate) }) }
+            item {
+                MealSection(
+                    title = "Desayuno",
+                    foods = state.breakfastFood,
+                    onNavigateToSearch = { onNavigateToSearch(state.selectedDate) }
+                )
+            }
+            item {
+                MealSection(
+                    title = "Comida",
+                    foods = state.lunchFood,
+                    onNavigateToSearch = { onNavigateToSearch(state.selectedDate) }
+                )
+            }
+            item {
+                MealSection(
+                    title = "Cena",
+                    foods = state.dinnerFood,
+                    onNavigateToSearch = { onNavigateToSearch(state.selectedDate) }
+                )
+            }
         }
     }
 
@@ -184,32 +208,17 @@ fun DiaryScreen(
                 todayDateBorderColor = MaterialTheme.colorScheme.primary
             )
         ) {
-            DatePicker(
-                state = datePickerState,
-                colors = DatePickerDefaults.colors(
-                    containerColor = Color.Black,
-                    titleContentColor = Color.White,
-                    headlineContentColor = Color.White,
-                    weekdayContentColor = Color.White,
-                    subheadContentColor = Color.White,
-                    yearContentColor = Color.White,
-                    currentYearContentColor = Color.White,
-                    selectedYearContainerColor = MaterialTheme.colorScheme.primary,
-                    selectedYearContentColor = Color.White,
-                    dayContentColor = Color.White,
-                    selectedDayContainerColor = MaterialTheme.colorScheme.primary,
-                    selectedDayContentColor = Color.White,
-                    todayContentColor = MaterialTheme.colorScheme.primary,
-                    todayDateBorderColor = MaterialTheme.colorScheme.primary
-                )
-            )
+            DatePicker(state = datePickerState)
         }
     }
 }
 
-
 @Composable
-fun MealSection(title: String, onNavigateToSearch: () -> Unit) {
+fun MealSection(
+    title: String,
+    foods: List<FoodConsumed>,
+    onNavigateToSearch: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -225,7 +234,7 @@ fun MealSection(title: String, onNavigateToSearch: () -> Unit) {
                 style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
                 color = Color.White
             )
-            IconButton(onClick = { onNavigateToSearch() }) {
+            IconButton(onClick = onNavigateToSearch) {
                 Icon(
                     imageVector = Icons.Default.AddCircle,
                     contentDescription = "Agregar $title",
@@ -233,30 +242,47 @@ fun MealSection(title: String, onNavigateToSearch: () -> Unit) {
                 )
             }
         }
-        // Aquí puedes agregar los ítems de cada comida
-        // Por ejemplo:
-        MealItem("Huevos revueltos", "200 kcal")
-        MealItem("Tostada integral", "80 kcal")
+        foods.forEach { food ->
+            MealItem(food)
+        }
     }
 }
 
 @Composable
-fun MealItem(name: String, calories: String) {
-    Row(
+fun MealItem(food: FoodConsumed) {
+    Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
+            .padding(vertical = 4.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = VeryDarkGray
+        )
     ) {
-        Text(
-            text = name,
-            style = MaterialTheme.typography.bodyLarge,
-            color = Color.White
-        )
-        Text(
-            text = calories,
-            style = MaterialTheme.typography.bodyLarge,
-            color = Color.White
-        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = food.nombre,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    color = Color.White
+                )
+                Text(
+                    text = "Porción: ${food.amount}",
+                    color = Color.LightGray,
+                    fontSize = 14.sp
+                )
+            }
+            Text(
+                text = "${food.calories.toInt()} kcal",
+                fontWeight = FontWeight.Medium,
+                color = Color.White
+            )
+        }
     }
 }

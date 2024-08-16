@@ -48,20 +48,32 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.alberto.calorietracker.home.domain.model.Food
 import com.alberto.calorietracker.home.domain.model.Nutrients
 import com.alberto.calorietracker.ui.theme.OrangeMedium
+import java.text.SimpleDateFormat
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DetailScreen (
+fun DetailScreen(
     foodId: String,
+    date: Long,
     viewModel: FoodDetailViewModel = hiltViewModel(),
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onNavigateToDiary: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
     LaunchedEffect(foodId) {
         viewModel.onEvent(FoodDetailEvent.LoadFood(foodId))
     }
+    LaunchedEffect(uiState.saveSuccess) {
+        if (uiState.saveSuccess) {
+            onNavigateToDiary()
+        }
+    }
+
 
     Scaffold(
         topBar = {
@@ -71,11 +83,9 @@ fun DetailScreen (
                     IconButton(onClick = onBack) {
                         Icon(Icons.Filled.ArrowBack, contentDescription = "Volver", tint = Color.White)
                     }
-                },
-                //backgroundColor = Color.Black
+                }
             )
-        },
-        //backgroundColor = Color.Black
+        }
     ) { padding ->
         when {
             uiState.isLoading -> LoadingIndicator()
@@ -86,9 +96,14 @@ fun DetailScreen (
                 selectedMealType = uiState.selectedMealType,
                 onCustomAmountChange = { viewModel.onEvent(FoodDetailEvent.UpdateCustomAmount(it)) },
                 onMealTypeChange = { viewModel.onEvent(FoodDetailEvent.UpdateMealType(it)) },
-                onSave = { viewModel.onEvent(FoodDetailEvent.SaveFoodConsumption) },
+                onSave = { viewModel.onEvent(FoodDetailEvent.SaveFoodConsumption(date)) },
                 saveSuccess = uiState.saveSuccess,
-                modifier = Modifier.padding(padding)
+                modifier = Modifier.padding(padding),
+                date = date,
+                calories = uiState.calories,
+                proteins = uiState.proteins,
+                fats = uiState.fats,
+                carbohydrates = uiState.carbohydrates
             )
         }
     }
@@ -104,7 +119,12 @@ fun FoodDetailContent(
     onMealTypeChange: (MealType) -> Unit,
     onSave: () -> Unit,
     saveSuccess: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    date: Long,
+    calories: Double,
+    proteins: Double,
+    fats: Double,
+    carbohydrates: Double
 ) {
     Column(
         modifier = modifier
@@ -125,6 +145,15 @@ fun FoodDetailContent(
             style = MaterialTheme.typography.titleMedium,
             color = Color.LightGray
         )
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Mostrar la fecha seleccionada
+        val dateLocal = LocalDate.ofEpochDay(date).format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+        Text(
+            text = "Fecha: ${dateLocal}",
+            style = MaterialTheme.typography.bodyMedium,
+            color = Color.LightGray
+        )
         Spacer(modifier = Modifier.height(16.dp))
 
         // Campo para ingresar cantidad personalizada
@@ -134,7 +163,6 @@ fun FoodDetailContent(
             label = { Text("Cantidad consumida (${food.unidadBase})", color = Color.White) },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             colors = TextFieldDefaults.outlinedTextFieldColors(
-                //textColor = Color.White,
                 focusedBorderColor = Color.White,
                 unfocusedBorderColor = Color.Gray
             ),
@@ -157,7 +185,7 @@ fun FoodDetailContent(
             fontWeight = FontWeight.Bold
         )
         Spacer(modifier = Modifier.height(8.dp))
-        NutrientInfoCard(food.nutrientes, customAmount.toFloatOrNull() ?: food.cantidadBase)
+        NutrientInfoCard(calories, proteins, fats, carbohydrates)
         Spacer(modifier = Modifier.height(16.dp))
 
         // Botón para guardar
@@ -238,17 +266,17 @@ fun MealTypeDropdown(
 }
 
 @Composable
-fun NutrientInfoCard(nutrientes: List<Nutrients>, param: Any) {
+fun NutrientInfoCard(calories: Double, proteins: Double, fats: Double, carbohydrates: Double) {
     Card(
         colors = CardDefaults.cardColors(containerColor = Color.DarkGray),
-        elevation =CardDefaults.cardElevation(4.dp),
+        elevation = CardDefaults.cardElevation(4.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            NutrientRow("Energía", "${nutrientes.firstOrNull()?.energia?.toInt() ?: 0} kcal")
-            NutrientRow("Proteínas", "${nutrientes.firstOrNull()?.proteinas?.toInt() ?: 0} g")
-            NutrientRow("Lípidos", "${nutrientes.firstOrNull()?.lipidos?.toInt() ?: 0} g")
-            NutrientRow("Carbohidratos", "${nutrientes.firstOrNull()?.carbohidratos?.toInt() ?: 0} g")
+            NutrientRow("Energía", "${calories.toInt()} kcal")
+            NutrientRow("Proteínas", "${proteins.toInt()} g")
+            NutrientRow("Lípidos", "${fats.toInt()} g")
+            NutrientRow("Carbohidratos", "${carbohydrates.toInt()} g")
         }
     }
 }
