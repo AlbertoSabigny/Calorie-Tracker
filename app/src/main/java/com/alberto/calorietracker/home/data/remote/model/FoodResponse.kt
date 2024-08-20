@@ -6,5 +6,7 @@ data class FoodResponse (
     val categoria: String = "",
     val unidadBase: String = "",
     val cantidadBase: Int = 0,
+    val tamanioPorcion: Double = 0.0,
+    val unidadPorcion: String = "",
     val nutrientes: List<NutrientsResponse> = emptyList()
 )

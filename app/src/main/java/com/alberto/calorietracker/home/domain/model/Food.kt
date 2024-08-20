@@ -6,5 +6,7 @@ data class Food (
     val categoria: String,
     val unidadBase: String,
     val cantidadBase: Int,
+    val tamanioPorcion: Double,  // Nuevo campo
+    val unidadPorcion: String,
     val nutrientes: List<Nutrients>
 )

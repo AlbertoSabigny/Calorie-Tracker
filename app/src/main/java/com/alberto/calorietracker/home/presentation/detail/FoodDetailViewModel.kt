@@ -6,6 +6,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alberto.calorietracker.home.data.local.entity.FoodEntity
+import com.alberto.calorietracker.home.data.local.entity.MeasurementType
 import com.alberto.calorietracker.home.domain.usecase.GetFoodByIdUseCase
 import com.alberto.calorietracker.home.domain.usecase.SaveFoodConsumptionUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -38,6 +39,7 @@ class FoodDetailViewModel @Inject constructor(
                     is FoodDetailEvent.UpdateCustomAmount -> updateCustomAmount(event.amount)
                     is FoodDetailEvent.SaveFoodConsumption -> saveFoodConsumption(event.date)
                     is FoodDetailEvent.UpdateMealType -> updateMealType(event.mealType)
+                    is FoodDetailEvent.UpdateMeasurementType -> updateMeasurementType(event.type)
                 }
             }
         }
@@ -49,6 +51,14 @@ class FoodDetailViewModel @Inject constructor(
 
     private fun updateMealType(mealType: MealType) {
         _uiState.update { it.copy(selectedMealType = mealType) }
+    }
+
+    private fun updateMeasurementType(type: MeasurementType) {
+        _uiState.update { it.copy(
+            selectedMeasurementType = type,
+            customAmount = if (type == MeasurementType.PORTION) "1" else it.food?.cantidadBase.toString()
+        ) }
+        updateNutritionInfo()
     }
 
     fun onEvent(event: FoodDetailEvent) {
@@ -69,10 +79,13 @@ class FoodDetailViewModel @Inject constructor(
                                 food = food,
                                 isLoading = false,
                                 error = null,
-                                customAmount = food.cantidadBase.toString()
+                                customAmount = food.cantidadBase.toString(),
+                                selectedMeasurementType = MeasurementType.GRAM,
+                                unidadBase = food.unidadBase,
+                                unidadPorcion = food.unidadPorcion
                             )
                         }
-                        updateNutritionInfo(food.cantidadBase)
+                        updateNutritionInfo()
                         Log.d(TAG, "Alimento cargado: ${food.nombre}")
                     },
                     onFailure = { error ->
@@ -99,19 +112,25 @@ class FoodDetailViewModel @Inject constructor(
 
     private fun updateCustomAmount(amount: String) {
         _uiState.update { it.copy(customAmount = amount) }
-        updateNutritionInfo(amount.toIntOrNull() ?: return)
+        updateNutritionInfo()
     }
 
-    private fun updateNutritionInfo(customAmount: Int) {
+    private fun updateNutritionInfo() {
         val food = _uiState.value.food ?: return
-        val baseAmount = food.cantidadBase
+        val customAmount = _uiState.value.customAmount.toDoubleOrNull() ?: return
+        val baseAmount = food.cantidadBase.toDouble()
+
+        val factor = when (_uiState.value.selectedMeasurementType) {
+            MeasurementType.GRAM -> customAmount / baseAmount
+            MeasurementType.PORTION -> customAmount * (food.tamanioPorcion / baseAmount)
+        }
 
         _uiState.update { currentState ->
             currentState.copy(
-                calories = calculateNutrient(food.nutrientes.first().energia, baseAmount, customAmount),
-                proteins = calculateNutrient(food.nutrientes.first().proteinas, baseAmount, customAmount),
-                carbohydrates = calculateNutrient(food.nutrientes.first().carbohidratos, baseAmount, customAmount),
-                fats = calculateNutrient(food.nutrientes.first().lipidos, baseAmount, customAmount)
+                calories = calculateNutrient(food.nutrientes.first().energia, factor),
+                proteins = calculateNutrient(food.nutrientes.first().proteinas, factor),
+                carbohydrates = calculateNutrient(food.nutrientes.first().carbohidratos, factor),
+                fats = calculateNutrient(food.nutrientes.first().lipidos, factor)
             )
         }
     }
@@ -119,15 +138,22 @@ class FoodDetailViewModel @Inject constructor(
     private fun saveFoodConsumption(date: Long) {
         val currentState = _uiState.value
         val food = currentState.food ?: return
-        val customAmount = currentState.customAmount.toIntOrNull() ?: return
+        val customAmount = currentState.customAmount.toDoubleOrNull() ?: return
 
         viewModelScope.launch {
             try {
+                val amountInGrams = when (currentState.selectedMeasurementType) {
+                    MeasurementType.GRAM -> customAmount
+                    MeasurementType.PORTION -> customAmount * food.tamanioPorcion
+                }
+
                 val foodEntity = FoodEntity(
+                    firebaseId = food.id,
                     nombre = food.nombre,
                     date = date,
                     mealType = currentState.selectedMealType,
-                    amount = customAmount,
+                    amount = amountInGrams,
+                    measurementType = currentState.selectedMeasurementType,
                     calories = currentState.calories,
                     proteins = currentState.proteins,
                     carbohydrates = currentState.carbohydrates,
@@ -137,8 +163,7 @@ class FoodDetailViewModel @Inject constructor(
                 saveFoodConsumptionUseCase(foodEntity)
                 _uiState.update { it.copy(saveSuccess = true) }
 
-                // Reseteamos el estado de éxito después de un breve delay
-                delay(2000) // 2 segundos
+                delay(2000)
                 _uiState.update { it.copy(saveSuccess = false) }
 
                 Log.d(TAG, "Alimento guardado con éxito: ${food.nombre}")
@@ -149,7 +174,7 @@ class FoodDetailViewModel @Inject constructor(
         }
     }
 
-    private fun calculateNutrient(baseValue: Double, baseAmount: Int, customAmount: Int): Double {
-        return baseValue * customAmount / baseAmount
+    private fun calculateNutrient(baseValue: Double, factor: Double): Double {
+        return baseValue * factor
     }
 }

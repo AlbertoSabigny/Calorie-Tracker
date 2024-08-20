@@ -45,25 +45,33 @@ class SearchFoodViewModel @Inject constructor(
             _uiState
                 .map { it.searchQuery }
                 .debounce(300)
-                .filter { it.isNotBlank() }
                 .distinctUntilChanged()
                 .flatMapLatest { query ->
-                    Log.d(TAG, "Iniciando búsqueda para: $query")
                     flow {
-                        _uiState.update { it.copy(isLoading = true) }
-                        emit(searchFoodUseCase(query))
+                        if (query.isBlank()) {
+                            Log.d(TAG, "Búsqueda vacía, limpiando resultados")
+                            emit(emptyList())
+                        } else {
+                            Log.d(TAG, "Iniciando búsqueda para: $query")
+                            _uiState.update { it.copy(isLoading = true, error = null) }
+                            emit(searchFoodUseCase(query))
+                        }
                     }
                 }
                 .catch { e ->
                     Log.e(TAG, "Error durante la búsqueda: ${e.message}", e)
-                    _uiState.update { it.copy(error = e.message, isLoading = false) }
+                    _uiState.update { it.copy(error = e.message ?: "Error desconocido", isLoading = false) }
                 }
                 .collect { alimentos ->
                     Log.d(TAG, "Resultados obtenidos: ${alimentos.size} alimentos")
-                    alimentos.forEach { food ->
-                        Log.d(TAG, "Alimento: ${food.nombre}, Nutrientes: ${food.nutrientes.size}")
-                        food.nutrientes.forEach { nutriente ->
-                            Log.d(TAG, "  Nutriente: id=${nutriente.id}, energia=${nutriente.energia}, proteinas=${nutriente.proteinas}, lipidos=${nutriente.lipidos}, carbohidratos=${nutriente.carbohidratos}")
+                    if (alimentos.isEmpty()) {
+                        Log.d(TAG, "No se encontraron resultados")
+                    } else {
+                        alimentos.forEach { food ->
+                            Log.d(TAG, "Alimento: ${food.nombre}, Nutrientes: ${food.nutrientes.size}")
+                            food.nutrientes.forEach { nutriente ->
+                                Log.d(TAG, "  Nutriente: id=${nutriente.id}, energia=${nutriente.energia}, proteinas=${nutriente.proteinas}, lipidos=${nutriente.lipidos}, carbohidratos=${nutriente.carbohidratos}")
+                            }
                         }
                     }
                     _uiState.update { it.copy(alimentos = alimentos, isLoading = false, error = null) }
@@ -78,8 +86,8 @@ class SearchFoodViewModel @Inject constructor(
     }
 
     private fun handleSearchQuery(query: String) {
+        Log.d(TAG, "Actualizando query de búsqueda: $query")
         _uiState.update { it.copy(searchQuery = query) }
     }
 }
-
 

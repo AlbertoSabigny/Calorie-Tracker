@@ -9,7 +9,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -27,6 +29,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
@@ -45,6 +49,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.alberto.calorietracker.home.data.local.entity.MeasurementType
 import com.alberto.calorietracker.home.domain.model.Food
 import com.alberto.calorietracker.home.domain.model.Nutrients
 import com.alberto.calorietracker.ui.theme.OrangeMedium
@@ -65,15 +70,14 @@ fun DetailScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    LaunchedEffect(foodId) {
-        viewModel.onEvent(FoodDetailEvent.LoadFood(foodId))
-    }
+   // LaunchedEffect(foodId) {
+   //     viewModel.onEvent(FoodDetailEvent.LoadFood(foodId))
+  //  }
     LaunchedEffect(uiState.saveSuccess) {
         if (uiState.saveSuccess) {
             onNavigateToDiary()
         }
     }
-
 
     Scaffold(
         topBar = {
@@ -94,8 +98,10 @@ fun DetailScreen(
                 food = uiState.food!!,
                 customAmount = uiState.customAmount,
                 selectedMealType = uiState.selectedMealType,
+                selectedMeasurementType = uiState.selectedMeasurementType,
                 onCustomAmountChange = { viewModel.onEvent(FoodDetailEvent.UpdateCustomAmount(it)) },
                 onMealTypeChange = { viewModel.onEvent(FoodDetailEvent.UpdateMealType(it)) },
+                onMeasurementTypeChange = { viewModel.onEvent(FoodDetailEvent.UpdateMeasurementType(it)) },
                 onSave = { viewModel.onEvent(FoodDetailEvent.SaveFoodConsumption(date)) },
                 saveSuccess = uiState.saveSuccess,
                 modifier = Modifier.padding(padding),
@@ -115,8 +121,10 @@ fun FoodDetailContent(
     food: Food,
     customAmount: String,
     selectedMealType: MealType,
+    selectedMeasurementType: MeasurementType,
     onCustomAmountChange: (String) -> Unit,
     onMealTypeChange: (MealType) -> Unit,
+    onMeasurementTypeChange: (MeasurementType) -> Unit,
     onSave: () -> Unit,
     saveSuccess: Boolean,
     modifier: Modifier = Modifier,
@@ -150,24 +158,41 @@ fun FoodDetailContent(
         // Mostrar la fecha seleccionada
         val dateLocal = LocalDate.ofEpochDay(date).format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
         Text(
-            text = "Fecha: ${dateLocal}",
+            text = "Fecha: $dateLocal",
             style = MaterialTheme.typography.bodyMedium,
             color = Color.LightGray
         )
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Campo para ingresar cantidad personalizada
-        OutlinedTextField(
-            value = customAmount,
-            onValueChange = onCustomAmountChange,
-            label = { Text("Cantidad consumida (${food.unidadBase})", color = Color.White) },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            colors = TextFieldDefaults.outlinedTextFieldColors(
-                focusedBorderColor = Color.White,
-                unfocusedBorderColor = Color.Gray
-            ),
-            modifier = Modifier.fillMaxWidth()
-        )
+        // Campo para ingresar cantidad personalizada y selector de tipo de medida
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            OutlinedTextField(
+                value = customAmount,
+                onValueChange = onCustomAmountChange,
+                label = { Text("Cantidad", color = Color.White) },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    focusedBorderColor = Color.White,
+                    unfocusedBorderColor = Color.Gray
+                ),
+                modifier = Modifier
+                    .weight(0.5f)
+                    .height(60.dp) // Altura fija para alinear con el dropdown
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            MeasurementTypeDropdown(
+                food,
+                selectedMeasurementType = selectedMeasurementType,
+                onMeasurementTypeChange = onMeasurementTypeChange,
+                modifier = Modifier
+                    .weight(0.5f)
+                    .height(56.dp) // Altura fija para alinear con el campo de texto
+            )
+        }
+
         Spacer(modifier = Modifier.height(16.dp))
 
         // Menú desplegable para seleccionar el tipo de comida
@@ -205,6 +230,62 @@ fun FoodDetailContent(
                 color = Color.Green,
                 style = MaterialTheme.typography.bodyMedium
             )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MeasurementTypeDropdown(
+    food: Food,
+    selectedMeasurementType: MeasurementType,
+    onMeasurementTypeChange: (MeasurementType) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val measurementTypes = MeasurementType.values()
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = !expanded },
+        modifier = modifier
+    ) {
+        OutlinedTextField(
+            readOnly = true,
+            value = when (selectedMeasurementType) {
+                MeasurementType.GRAM -> food.unidadBase
+                MeasurementType.PORTION -> food.unidadPorcion
+            },
+            onValueChange = { },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(
+                focusedBorderColor = Color.White,
+                unfocusedBorderColor = Color.Gray
+            ),
+            modifier = Modifier
+                .menuAnchor()
+                .fillMaxWidth()
+        )
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            measurementTypes.forEach { measurementType ->
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            when (measurementType) {
+                                MeasurementType.GRAM -> food.unidadBase
+                                MeasurementType.PORTION -> food.unidadPorcion
+                            }
+                        )
+                    },
+                    onClick = {
+                        onMeasurementTypeChange(measurementType)
+                        expanded = false
+                    }
+                )
+            }
         }
     }
 }

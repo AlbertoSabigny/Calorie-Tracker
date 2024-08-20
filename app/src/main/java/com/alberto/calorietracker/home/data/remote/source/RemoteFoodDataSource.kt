@@ -1,5 +1,6 @@
 package com.alberto.calorietracker.home.data.remote.source
 
+import android.util.Log
 import com.alberto.calorietracker.home.data.remote.model.FoodResponse
 import com.alberto.calorietracker.home.data.remote.model.NutrientsResponse
 import com.google.firebase.firestore.FirebaseFirestore
@@ -11,14 +12,21 @@ class RemoteFoodDataSource @Inject constructor(
 ) {
     suspend fun buscarAlimentos(query: String): List<FoodResponse> {
         return try {
+
+            Log.d("RemoteFoodDataSource", "Iniciando búsqueda con query: '$query'")
+
             val snapshot = firestore.collection("Foods")
                 .whereGreaterThanOrEqualTo("nombre", query)
                 .whereLessThanOrEqualTo("nombre", query + '\uf8ff')
                 .get()
                 .await()
 
+            Log.d("RemoteFoodDataSource", "Búsqueda completada. Documentos encontrados: ${snapshot.documents.size}")
+
             snapshot.documents.mapNotNull { document ->
+                Log.d("RemoteFoodDataSource", "Procesando documento: ${document.id}")
                 document.toObject(FoodResponse::class.java)?.let { food ->
+                    Log.d("RemoteFoodDataSource", "Documento mapeado con éxito: ${food.nombre}")
                     food.copy(
                         id = document.id,
                         nutrientes = cargarNutrientes(document.reference.collection("nutrientes"))

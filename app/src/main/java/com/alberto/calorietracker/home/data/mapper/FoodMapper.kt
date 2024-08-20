@@ -15,6 +15,8 @@ fun FoodResponse.toDomain(): Food {
         categoria = this.categoria,
         unidadBase = this.unidadBase,
         cantidadBase = this.cantidadBase,
+        unidadPorcion = this.unidadPorcion,
+        tamanioPorcion = this.tamanioPorcion,
         nutrientes = this.nutrientes.map { it.toDomain() }
     )
 }
@@ -36,6 +38,7 @@ fun List<FoodResponse>.toDomainList(): List<Food> {
 fun FoodEntity.toFoodConsumed(): FoodConsumed {
     return FoodConsumed(
         id = this.id,
+        firebaseId = this.firebaseId,
         nombre = this.nombre,
         date = LocalDate.ofEpochDay(this.date),
         mealType = this.mealType,
@@ -43,6 +46,7 @@ fun FoodEntity.toFoodConsumed(): FoodConsumed {
         calories = this.calories,
         proteins = this.proteins,
         carbohydrates = this.carbohydrates,
-        fats = this.fats
+        fats = this.fats,
+        measurementType = measurementType
     )
 }
